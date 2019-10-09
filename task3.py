@@ -1,12 +1,8 @@
-"""
-Task 3 - Sampling the Bayesian Network - Forward Sampling
-"""
-
 import random
-
 
 # Recursively find child nodes such that nodes first in the ordering have no more unvisited children.
 def topologicalSortRec(G, v, ordering, visited):
+
     visited.append(v)
     for child in G[v]:
         if child not in visited:
@@ -14,9 +10,9 @@ def topologicalSortRec(G, v, ordering, visited):
 
     ordering.insert(0, v)
 
-
-# Find a topological ordering on the graph
+#Find a topological ordering on the graph
 def topologicalSort(graph):
+
     ordering = []
     visited = []
 
@@ -24,61 +20,100 @@ def topologicalSort(graph):
         if node not in visited:
             topologicalSortRec(graph, node, ordering, visited)
 
+
     return ordering  # return the stack - ordering on the graph
 
 
-def getSampleSpace(table, node):
-    lst = list(table.items())
+def getSampleSpace(table, samples, node):
 
-    space = list(lst[1])
-    space = list(space[1].items())
+   # print(table)
 
-    return space
+    keys = list(table['dom'])
+
+    nodeIndex = keys.index(node)
+
+    observed = []
+    indexes = {}
+
+    for i in samples:
+        if i in keys:
+            observed.append(i)
+            indexes[keys.index(i)] = i
 
 
-def sampleValue(sampleSpace):
+    space = []
+
+    listTable = list(table['table'].items())
+
+    for example in listTable:
+        nodes = list(example[0])
+        add = True
+        for i in indexes.keys():
+            if nodes[i] != samples[indexes[i]]:
+                add = False
+                break
+        #Add the row from the table with the correctly observed data
+        if add == True:
+            space.append(example)
+
+
+    return space, nodeIndex
+
+
+def sampleValue(sampleSpace, nodeIndex):
+
+
     rnd = random.random()
 
-    lst = [0]
-
+    lst = []
+    names = {}
     for row in sampleSpace:
         lst.append(row[1])
+        names[str(row[1])] = list(row[0])[nodeIndex]
 
-    lst.append(1)
     lst.sort()
 
-    prob = 0
-    # sampling correctly ?????
-    for index in range(1, len(lst)):
+    lst.insert(0, 0)
 
-        if rnd >= lst[index - 1] and rnd < lst[index]:
-            prob = lst[index]
-            if prob == 1:
-                prob = lst[index - 1]
+    #Split up the probabilities into 'regions' for the rnd to fall into
+    regions = []
+    sumVal = 0
+    for i in range(1, len(lst)):
+        sumVal += lst[i - 1]
+        regions.append(lst[i] + sumVal)
+
+
+    lst.pop(0)
+
+
+
+    for indx in range(len(regions)):
+        if rnd < regions[indx]:
+            chosen = indx
             break
 
-    chosenVal = ''
+    chosenVal = names[str(lst[chosen])]
 
-    for val in sampleSpace:
-        if val[1] == prob:
-            chosenVal = val[0]
+
 
     return chosenVal
 
 
-def sample(graph, prob_tables):
+
+def sample(graph, prob_tables): #, queryNode, numObserved):
+
     ordering = topologicalSort(graph)
     samples = {}
+    #samples = {'Age' : '50-74', 'Location':'LowInQuad'} #for testing
 
     for node in ordering:
-        sampleSpace = getSampleSpace(prob_tables[node], node)
+        sampleSpace, nodeIndex = getSampleSpace(prob_tables[node], samples, node)
 
-        val = sampleValue(sampleSpace)
+        val = sampleValue(sampleSpace, nodeIndex)
         samples[node] = val
 
     return samples
 
-
-# for x in range(1000):
+#for x in range(1000):
 s = sample(graph, prob_tables)
-# print(s)
+print(s)
