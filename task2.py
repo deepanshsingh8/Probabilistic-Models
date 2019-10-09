@@ -5,7 +5,7 @@ Task 2 - Generating Probability Tables From Data
 # Get data from file, learn parameters
 from collections import OrderedDict as odict
 import pandas as pd
-from itertools import product, combinations
+from itertools import product
 import numpy as np
 from tabulate import tabulate
 
@@ -24,7 +24,7 @@ def allEqualThisIndex(dict_of_arrays, **fixed_vars):
 
     It is perhaps best explained by an example.
 
-    >>> all_equal_this_index(
+    all_equal_this_index(
     ...    {'X': [1, 1, 0], Y: [1, 0, 1]},
     ...    X=1,
     ...    Y=1
@@ -103,30 +103,6 @@ def estProbTable(data, var_name, parent_names, outcomeSpace):
     return {'dom': tuple(list(parent_names) + [var_name]), 'table': prob_table}
 
 
-# ==========================================================
-
-
-graph = {
-    'LymphNodes': [],
-    'Metastasis': ['LymphNodes'],
-    'BC': ['Metastasis', 'MC', 'SkinRetract', 'NippleDischarge', 'AD'],
-    'MC': [],
-    'Age': ['BC'],
-    'Location': ['BC'],
-    'BreastDensity': ['Mass'],
-    'Mass': ['Size', 'Shape', 'Margin'],
-    'Size': [],
-    'Shape': [],
-    'Margin': [],
-    'Spiculation': ['Margin'],
-    'FibrTissueDev': ['Spiculation', 'NippleDischarge', 'SkinRetract'],
-    'NippleDischarge': [],
-    'SkinRetract': [],
-    'AD': ['FibrTissueDev'],
-}
-
-graphT = transposeGraph(graph)
-
 """
 Read the data, and return an outcomeSpace dictionary with
 all of the different nodes, and their domains
@@ -151,18 +127,18 @@ def getOutcomeSpace(data):
     for i in range(len(nodes)):
         outcomeSpace[nodes[i]] = tuple(outcomes[i])
 
-    return dict(outcomeSpace)
+    return outcomeSpace
 
 
-def learn_bayes_net(graph, file, outcomeSpace, prob_tables):
+def learn_bayes_net(graph, file):
     with open(file) as h:
         data = pd.read_csv(h)
 
-    # possible outcomes, by variable
+    # Possible outcomes, by variable
     outcomeSpace = getOutcomeSpace(data)
 
     prob_tables = odict()
-    for node, parents in graphT.items():
+    for node, parents in graph.items():
         prob_tables[node] = estProbTable(  # Estimate the probability for a single table. 1 line
             data,
             node,
@@ -172,14 +148,40 @@ def learn_bayes_net(graph, file, outcomeSpace, prob_tables):
     ##############################
     # Test code
     ##############################
-    print('estimated P(Location)=')
-    printFactor(prob_tables['Shape'])
+    feature = 'BC'
+    print('Estimated Prob table for {}'.format(feature))
+    printFactor(prob_tables[feature])
     print()
 
     return outcomeSpace, prob_tables
 
 
-prob_tables = []
-outcomeSpace = []
+# ==========================================================
 
-outcomeSpace, prob_tables = learn_bayes_net(graph, 'bc 2.csv', outcomeSpace, prob_tables)
+
+graph = {
+    'LymphNodes': [],
+    'Metastasis': ['LymphNodes'],
+    'BC': ['Metastasis', 'MC', 'SkinRetract', 'NippleDischarge', 'AD'],
+    'MC': [],
+    'Age': ['BC'],
+    'Location': ['BC'],
+    'BreastDensity': ['Mass'],
+    'Mass': ['Size', 'Shape', 'Margin'],
+    'Size': [],
+    'Shape': [],
+    'Margin': [],
+    'Spiculation': ['Margin'],
+    'FibrTissueDev': ['Spiculation', 'NippleDischarge', 'SkinRetract'],
+    'NippleDischarge': [],
+    'SkinRetract': [],
+    'AD': ['FibrTissueDev']
+}
+
+graphT = transposeGraph(graph)
+
+outcomeSpace, prob_tables = learn_bayes_net(graphT, 'resources/bc_2.csv')
+print('Outcome Space')
+print(outcomeSpace)
+print('Probability Table for all features')
+print(prob_tables)
