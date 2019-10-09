@@ -2,8 +2,7 @@
 Task 2 - Generating Probability Tables From Data
 """
 
-
-#Get data from file, learn parameters
+# Get data from file, learn parameters
 from collections import OrderedDict as odict
 import pandas as pd
 from itertools import product, combinations
@@ -11,7 +10,7 @@ import numpy as np
 from tabulate import tabulate
 
 
-#================= Code from Week 3 Tutorial ====================================
+# ================= Code from Week 3 Tutorial ====================================
 
 
 def allEqualThisIndex(dict_of_arrays, **fixed_vars):
@@ -36,9 +35,8 @@ def allEqualThisIndex(dict_of_arrays, **fixed_vars):
     first_array = dict_of_arrays[list(dict_of_arrays.keys())[0]]
     index = np.ones_like(first_array, dtype=np.bool_)
     for var_name, var_val in fixed_vars.items():
-        index = index & (np.asarray(dict_of_arrays[var_name])==var_val)
+        index = index & (np.asarray(dict_of_arrays[var_name]) == var_val)
     return index
-
 
 
 def printFactor(f):
@@ -61,7 +59,8 @@ def printFactor(f):
     dom = list(f['dom'])
     # Append a 'Pr' to indicate the probabity column
     dom.append('Pr')
-    print(tabulate(table,headers=dom,tablefmt='orgtbl'))
+    print(tabulate(table, headers=dom, tablefmt='orgtbl'))
+
 
 def transposeGraph(G):
     GT = dict((v, []) for v in G)
@@ -97,18 +96,20 @@ def estProbTable(data, var_name, parent_names, outcomeSpace):
         parent_vars = dict(zip(parent_names, parent_combination))
         parent_index = allEqualThisIndex(data, **parent_vars)
         for var_outcome in var_outcomes:
-            var_index = (np.asarray(data[var_name])==var_outcome)
-            prob_table[tuple(list(parent_combination)+[var_outcome])] = (var_index & parent_index).sum()/parent_index.sum()
+            var_index = (np.asarray(data[var_name]) == var_outcome)
+            prob_table[tuple(list(parent_combination) + [var_outcome])] = (
+                                                                                  var_index & parent_index).sum() / parent_index.sum()
 
-    return {'dom': tuple(list(parent_names)+[var_name]), 'table': prob_table}
+    return {'dom': tuple(list(parent_names) + [var_name]), 'table': prob_table}
 
-#==========================================================
+
+# ==========================================================
 
 
 graph = {
     'LymphNodes': [],
     'Metastasis': ['LymphNodes'],
-    'BC': ['Metastasis','MC', 'SkinRetract', 'NippleDischarge', 'AD'],
+    'BC': ['Metastasis', 'MC', 'SkinRetract', 'NippleDischarge', 'AD'],
     'MC': [],
     'Age': ['BC'],
     'Location': ['BC'],
@@ -120,8 +121,8 @@ graph = {
     'Spiculation': ['Margin'],
     'FibrTissueDev': ['Spiculation', 'NippleDischarge', 'SkinRetract'],
     'NippleDischarge': [],
-    'SkinRetract' : [],
-    'AD' : ['FibrTissueDev'],
+    'SkinRetract': [],
+    'AD': ['FibrTissueDev'],
 }
 
 graphT = transposeGraph(graph)
@@ -130,8 +131,9 @@ graphT = transposeGraph(graph)
 Read the data, and return an outcomeSpace dictionary with
 all of the different nodes, and their domains
 """
-def getOutcomeSpace(data):
 
+
+def getOutcomeSpace(data):
     nodes = []
     outcomes = []
 
@@ -149,22 +151,19 @@ def getOutcomeSpace(data):
     for i in range(len(nodes)):
         outcomeSpace[nodes[i]] = tuple(outcomes[i])
 
-
     return dict(outcomeSpace)
 
+
 def learn_bayes_net(graph, file, outcomeSpace, prob_tables):
-
-
     with open(file) as h:
         data = pd.read_csv(h)
 
     # possible outcomes, by variable
     outcomeSpace = getOutcomeSpace(data)
 
-
     prob_tables = odict()
     for node, parents in graphT.items():
-        prob_tables[node] = estProbTable(         # Estimate the probability for a single table. 1 line
+        prob_tables[node] = estProbTable(  # Estimate the probability for a single table. 1 line
             data,
             node,
             parents,
@@ -176,7 +175,6 @@ def learn_bayes_net(graph, file, outcomeSpace, prob_tables):
     print('estimated P(Location)=')
     printFactor(prob_tables['Shape'])
     print()
-
 
     return outcomeSpace, prob_tables
 
