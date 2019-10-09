@@ -53,20 +53,6 @@ graph = {
     'T': ['B']
 }
 '''
-with open('bc 2.csv') as h:
-    df = pd.read_csv(h)
-
-#for col in df.columns:
-    #print(df[col].value_counts())
-    
-#print(df.dtypes)
-
-lable_make = LabelEncoder()
-for col in df.columns:    
-    df[col] = lable_make.fit_transform(df[col])
-#the catagorical columns have been converted into numerical values for calculation of probability tables.
-#print(df.head(10))
-
 '''
 
 
