@@ -24,7 +24,7 @@ from tabulate import tabulate
 # easier debugging display
 pd.set_option('display.multi_sparse', False)
 from pprint import pprint
-
+from copy import deepcopy
 '''
 'Age' : A
 'Location' : B
@@ -129,30 +129,66 @@ graph = {
         'Spiculation':['Margin']
         }   
 
+
+
+g = {
+    'L': ['R'],
+    'R': ['D','T'],
+    'B': ['T'],
+    'D': [],
+    'T': ['Z'],
+    'Z': [],
+}
  
 def d_seperation(G,X,Y,Z):
     union = X+Y+Z
+    temp_dict = deepcopy(G)
     for key in G.keys():
         if len(G[key])==0:
-            if key not in union: #key!=X && key!=Y && key not in Z
+            if key not in union:
                 #remove key as it is a leaf node.
-                G.pop(key,None)
-            
-        if key==Z:
-            G[key] = [] #replace the list with empty list to remove any outgoing branches from the key
-    if find_path(G,X,Y)==None:
+                temp_dict.pop(key,None)
+                for node in temp_dict.keys():
+                    try:
+                        temp_dict[node].remove(key)
+                    except ValueError:
+                        pass                    
+        if key in Z:
+            temp_dict[key] = [] #replace the list with empty list to remove any outgoing branches from the key
+    
+    
+    #creating a undirected graph after removing the nodes and the branches..
+    #print(temp_dict)
+    new_dict = {}
+    for key,value in temp_dict.items():
+        for val in value:
+            if key in new_dict:
+                new_dict[key].append(val)
+            else:
+                new_dict[key] = [val]
+            #print(val)
+            if val in new_dict:              
+                new_dict[val].append(key)
+            else:
+                new_dict[val] = [key]
+
+    #new_dict is an undirect graph in place of the original graph
+    #print(new_dict)
+    
+    path = find_path(new_dict,X,Y)
+    print(path)
+    if path==None:
         print("X and Y are deseperated given Z")
     else:
         print("X and Y are not deseperated given Z")
 
 
-
-def find_path(G, start_vertex, end_vertex, path=None):
+'''
+def find_path(graph, start_vertex, end_vertex, path=None):
         """ find a path from start_vertex to end_vertex 
             in graph """
         if path == None:
             path = []
-        graph = G
         path = path + [start_vertex]
         if start_vertex == end_vertex:
             return path
@@ -164,8 +200,29 @@ def find_path(G, start_vertex, end_vertex, path=None):
                 if extended_path: 
                     return extended_path
         return None
-    
-    
-d_seperation(graph, 'BC', 'Shape', 'Mass')
+'''
+def find_path(graph, start, end, path=[]):
+        path = path + [start]
+        if start == end:
+            return path
+        if start not in graph:
+            return None
+        for node in graph[start]:
+            if node not in path:
+                newpath = find_path(graph, node, end, path)
+                if newpath: return newpath
+        return None
+'''
+g__ = {'A': ['B', 'C'],
+             'B': ['C', 'D'],
+             'C': ['D'],
+             'D': ['C'],
+             'E': ['F'],
+             'F': ['C']}
+
+path = find_path(g__,'A','D')   
+print(path)
+'''
+d_seperation(g, 'L', 'B', 'T,R')
 
 #def estimate_probability():
