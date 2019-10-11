@@ -17,7 +17,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler
 
-input_file = 'resources/bc_2.csv'
+input_file = '../resources/bc_2.csv'
 
 with open(input_file) as f:
     data = pd.read_csv(f)
