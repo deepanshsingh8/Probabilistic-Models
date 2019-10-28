@@ -4,7 +4,6 @@ import random
 import src.conditional_probability_estimation as prob_estimate
 from collections import OrderedDict as odict
 from itertools import product
-import pandas as pd
 
 
 # Recursively find child nodes such that nodes first in the ordering have no more unvisited children.
